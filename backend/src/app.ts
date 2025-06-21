@@ -5,7 +5,7 @@ import authRoutes from './routes/auth';
 
 dotenv.config();
 connectDB();
-
+console.log('Hi')
 const app = express();
 app.use(express.json());
 
