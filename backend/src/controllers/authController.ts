@@ -57,7 +57,7 @@ export const login = async (req:Request,res:Response) => {
             return;
         }
 
-        const token = jwt.sign({userId:user._id},process.env.JWT_SECRET as string,{expiresIn:'1d'});
+        const token = jwt.sign({userId:user._id,role:user.role},process.env.JWT_SECRET as string,{expiresIn:'1d'});
         res.json(token);
     }catch(error:any){
         if(error.name === 'ValidationError'){
