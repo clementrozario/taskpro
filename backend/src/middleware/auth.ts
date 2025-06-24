@@ -5,10 +5,12 @@ export interface AuthRequest extends Request {
     user:{ userId:string; role:string };
 }
 
-export const authenticateJWT = (req:Request,res:Response,next:NextFunction) => {
+export const authenticateJWT = (req:Request,res:Response,next:NextFunction):void => {
     const authHeader = req.headers.authorization;
-    if(!authHeader) return res.status(401).json({message:"No token"});
-
+    if(!authHeader) {
+        res.status(401).json({message:"No token"});
+        return;
+    }
     const token = authHeader.split(" ")[1];
     try{
         const decoded = jwt.verify(token,process.env.JWT_SECRET as string) as {
@@ -19,15 +21,8 @@ export const authenticateJWT = (req:Request,res:Response,next:NextFunction) => {
         next();
     }catch(err){
         res.status(401).json({message:"Invalid token"});
+        return;
     }
 };
 
-export const authorizeRoles = (...roles:string[]) => {
-    return (req:AuthRequest,res:Response,next:NextFunction) => {
-        if(!req.user || !roles.includes(req.user.role)){
-            return res.status(403).json({message:"Forbidden"});
-        }
-        next();
-    };
-};
 
