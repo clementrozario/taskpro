@@ -12,4 +12,4 @@ const UserSchema = new Schema<IUser>({
     role: {type:String,enum:["Admin","User"],default:"User"},
 });
 
-export default mongoose.model<IUser>("user",UserSchema);
+export default mongoose.model<IUser>("User",UserSchema);

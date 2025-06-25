@@ -58,9 +58,20 @@ export const deleteTask = async(req:AuthRequest,res:Response):Promise<void> => {
 //all tasks
 export const getAllTasks = async (req:AuthRequest,res:Response) => {
     try{
-        const tasks = await Task.find();
+        const tasks = await Task.find()
+        .populate("assignee","email role")
+        .populate("project","name")
+        .populate("createdBy","email role")
+        .populate({
+            path:"comments",
+            populate:{
+                path:"user",
+                select:"email role",
+            }
+        })
         res.json(tasks);
     }catch(error){
+        console.log(error);
         res.status(500).json({message:"Server Error"});
     }
 };
