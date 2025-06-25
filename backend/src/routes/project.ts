@@ -1,5 +1,5 @@
 import express from 'express';
-import { createProject } from '../controllers/projectController';
+import { createProject,getAllProjects } from '../controllers/projectController';
 import { authenticateJWT } from '../middleware/auth';
 import { AuthRequest } from '../middleware/auth';
 import { Response, NextFunction } from 'express';
@@ -13,5 +13,6 @@ const wrap =
     fn(req as AuthRequest, res, next);
 
 router.post("/",authenticateJWT,wrap(createProject));
+router.get("/", authenticateJWT, wrap(getAllProjects));
 
 export default router;
