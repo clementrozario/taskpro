@@ -31,4 +31,13 @@ const TaskSchema = new Schema<ITask>(
     { timestamps:true }
 );
 
+TaskSchema.virtual("comments",{
+    ref:"Comment",
+    localField:"_id",
+    foreignField:"task"
+})
+
+TaskSchema.set("toJSON",{virtuals:true});
+TaskSchema.set("toObject",{virtuals:true});
+
 export default mongoose.model<ITask>("Task",TaskSchema);
