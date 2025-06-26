@@ -1,5 +1,6 @@
 import { Response } from "express";
 import Comment from "../models/Comment";
+import Task from "../models/Task";
 import { AuthRequest } from "../middleware/auth";
 
 export const addComment = async (req:AuthRequest,res:Response):Promise<void> => {
@@ -16,6 +17,12 @@ export const addComment = async (req:AuthRequest,res:Response):Promise<void> => 
 
         if(!text ) {
             res.status(400).json({message:'comment text is needed'});
+            return;
+        }
+
+        const task = await Task.findById(taskId);
+        if (!task) {
+            res.status(404).json({ message: "Task not found" });
             return;
         }
 
