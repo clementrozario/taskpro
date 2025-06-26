@@ -1,6 +1,7 @@
 import { Response } from "express";
 import Task from "../models/Task"
 import { AuthRequest } from "../middleware/auth";
+import { title } from "process";
 
 //create:
 export const createTask =  async (req:AuthRequest,res:Response):Promise<void> => {
@@ -58,17 +59,38 @@ export const deleteTask = async(req:AuthRequest,res:Response):Promise<void> => {
 //all tasks
 export const getAllTasks = async (req:AuthRequest,res:Response) => {
     try{
-        const tasks = await Task.find()
-        .populate("assignee","email role")
-        .populate("project","name")
-        .populate("createdBy","email role")
-        .populate({
-            path:"comments",
-            populate:{
-                path:"user",
-                select:"email role",
+        const tasks = await Task.aggregate([
+            {
+                $lookup:{
+                    from:"users",
+                    localField:"assignee",
+                    foreignField:"_id",
+                    as:"assignee"
+                }
+            },
+            { $unwind:{path:"$assignee",preserveNullAndEmptyArrays:true}},
+            {
+                $lookup:{
+                    from:"comments",
+                    localField:"_id",
+                    foreignField:"task",
+                    as:"comments"
+                }
+            },
+            {
+                $project:{
+                    title:1,
+                    assigneeEmail:"$assignee.email",
+                    comments:{
+                        $map:{
+                            input:"$comments",
+                            as:"comment",
+                            in:{ text: "$$comment.text"}
+                        }
+                    }
+                }
             }
-        })
+        ])
         res.json(tasks);
     }catch(error){
         console.log(error);
