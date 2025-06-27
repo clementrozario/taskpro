@@ -1,6 +1,7 @@
 import { Response } from "express";
 import Project from "../models/Project";
 import { AuthRequest } from "../middleware/auth";
+import { io } from "../app";
 
 export const createProject = async (req:AuthRequest,res:Response):Promise<void> =>{
     try{
@@ -14,6 +15,7 @@ export const createProject = async (req:AuthRequest,res:Response):Promise<void> 
 
         const project = new Project({name,description,owner});
         await project.save();
+        io.emit('projectCreated',project);
         res.status(201).json(project);
         return;
     }catch(error){

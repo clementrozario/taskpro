@@ -1,7 +1,7 @@
 import { Response } from "express";
 import Task from "../models/Task"
 import { AuthRequest } from "../middleware/auth";
-import { title } from "process";
+import { io } from "../app";
 
 //create:
 export const createTask =  async (req:AuthRequest,res:Response):Promise<void> => {
@@ -11,6 +11,7 @@ export const createTask =  async (req:AuthRequest,res:Response):Promise<void> =>
 
         const task = new Task({title,description,status,assignee,project,deadline,priority,tags,createdBy});
         await task.save();
+        io.emit("task-created",task);
         res.status(201).json(task);
     }catch(error){
         console.log(error);
@@ -35,6 +36,7 @@ export const updateTask = async (req:AuthRequest,res:Response):Promise<void> => 
             res.status(404).json({message:"Task not found"});
             return;
         }
+        io.emit("task-assigned",task);
         res.json(task);
     }catch(error){
         res.status(500).json({message:"Server Error"});
@@ -50,6 +52,7 @@ export const deleteTask = async(req:AuthRequest,res:Response):Promise<void> => {
         res.status(400).json({message:"Task not found"});
         return;
         }
+        io.emit('task-deleted',task);
         res.json({message:"Task deleted"}); 
     }catch(error){
         res.status(500).json({message:"Server Error"}); 
