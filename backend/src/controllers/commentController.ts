@@ -2,6 +2,7 @@ import { Response } from "express";
 import Comment from "../models/Comment";
 import Task from "../models/Task";
 import { AuthRequest } from "../middleware/auth";
+import { io } from "../app";
 
 export const addComment = async (req:AuthRequest,res:Response):Promise<void> => {
     try{
@@ -28,6 +29,7 @@ export const addComment = async (req:AuthRequest,res:Response):Promise<void> => 
 
         const comment = new Comment ({ task:taskId,user:userId,text });
         await comment.save();
+        io.emit('commentAdded',comment);
         res.status(201).json(comment);
 
     }catch(error){
