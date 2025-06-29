@@ -12,12 +12,13 @@ export const createTask =  async (req:AuthRequest,res:Response):Promise<void> =>
         const task = new Task({title,description,status,assignee,project,deadline,priority,tags,createdBy});
         await task.save();
 
-        const populateTask = await Task.findById(task._id).populate(
-            "assignee",
-            "email role"
-        );
-        io.emit("task-created",task);
-        res.status(201).json(task);
+        const populatedTask = await Task.findById(task._id)
+            .populate("assignee", "email role")
+            .populate("createdBy", "email role")
+            .populate("project", "name");
+
+        io.emit("task-created",populatedTask);
+        res.status(201).json(populatedTask);
     }catch(error){
         console.log(error);
         res.status(500).json({message:"Server error"});
