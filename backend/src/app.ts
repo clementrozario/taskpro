@@ -7,6 +7,7 @@ import projectRoutes from "./routes/project";
 import commentRoutes from "./routes/comment";
 import http from 'http'
 import { Server } from 'socket.io'
+import { initSocketIO } from './socket'
 
 
 dotenv.config();
@@ -22,6 +23,7 @@ const io = new Server(server,{
         methods:["GET","POST"]
     }
 })
+initSocketIO(io);
 
 app.use('/api/auth',authRoutes);
 app.use('/api/task',taskRoutes);
