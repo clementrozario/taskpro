@@ -5,6 +5,7 @@ import authRoutes from './routes/auth';
 import taskRoutes from './routes/task';
 import projectRoutes from "./routes/project";
 import commentRoutes from "./routes/comment";
+import adminRoutes from './routes/admin';
 import http from 'http'
 import { Server } from 'socket.io'
 import { initSocketIO } from './socket'
@@ -29,6 +30,7 @@ app.use('/api/auth',authRoutes);
 app.use('/api/task',taskRoutes);
 app.use("/api/projects", projectRoutes);
 app.use('/api/comments',commentRoutes);
+app.use('/api/admin',adminRoutes);
 
 const PORT = process.env.PORT;
 server.listen(PORT,()=>{
