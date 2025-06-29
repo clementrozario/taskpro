@@ -27,21 +27,13 @@ export const addComment = async (req:AuthRequest,res:Response):Promise<void> => 
             res.status(404).json({ message: "Task not found" });
             return;
         }
-
-        const adminUser = await User.findById(userId);
-        if(!adminUser){
-            res.status(404).json({message:"Admin not found"});
-            return;
-        }
-
+        
         const comment = new Comment ({ task:taskId,user:userId,text });
         await comment.save();
 
-        const commentWithEmail = {
-            ...comment.toObject(),
-            adminEmail:adminUser.email,
-        }
-        io.emit('commentAdded',commentWithEmail);
+        const populatedComment = await comment.populate("user", "email role");
+        
+        io.emit('commentAdded',populatedComment);
         res.status(201).json(comment);
 
     }catch(error){
