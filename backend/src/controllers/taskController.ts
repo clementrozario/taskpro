@@ -11,6 +11,11 @@ export const createTask =  async (req:AuthRequest,res:Response):Promise<void> =>
 
         const task = new Task({title,description,status,assignee,project,deadline,priority,tags,createdBy});
         await task.save();
+
+        const populateTask = await Task.findById(task._id).populate(
+            "assignee",
+            "email role"
+        );
         io.emit("task-created",task);
         res.status(201).json(task);
     }catch(error){
