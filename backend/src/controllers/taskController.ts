@@ -2,6 +2,7 @@ import { Response } from "express";
 import Task from "../models/Task"
 import { AuthRequest } from "../middleware/auth";
 import { io } from "../app";
+import mongoose from "mongoose";
 
 //create:
 export const createTask =  async (req:AuthRequest,res:Response):Promise<void> => {
@@ -68,13 +69,25 @@ export const deleteTask = async(req:AuthRequest,res:Response):Promise<void> => {
 //all tasks
 export const getAllTasks = async (req:AuthRequest,res:Response) => {
     try{
+        const projectId = req.query.project as string;
+        
+        if(!projectId){
+            res.status(400).json({message:"project ID is required"});
+            return;
+        }
+
         const tasks = await Task.aggregate([
+            {
+                $match: {
+                    project: new mongoose.Types.ObjectId(projectId),
+            },
+        },
             {
                 $lookup:{
                     from:"users",
                     localField:"assignee",
                     foreignField:"_id",
-                    as:"assignee"
+                    as:"assignee",
                 }
             },
             { $unwind:{path:"$assignee",preserveNullAndEmptyArrays:true}},
@@ -89,17 +102,24 @@ export const getAllTasks = async (req:AuthRequest,res:Response) => {
             {
                 $project:{
                     title:1,
+                    description: 1,
+                    status: 1,
+                    project: 1,
                     assigneeEmail:"$assignee.email",
+                    deadline: 1,
+                    priority: 1,
+                    tags: 1,
+                    createdBy: 1,
                     comments:{
                         $map:{
                             input:"$comments",
                             as:"comment",
-                            in:{ text: "$$comment.text"}
-                        }
-                    }
-                }
-            }
-        ])
+                            in:{ text: "$$comment.text"},
+                        },
+                    },
+                },
+            },
+        ]);
         res.json(tasks);
     }catch(error){
         console.log(error);
