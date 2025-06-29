@@ -3,6 +3,7 @@ import Comment from "../models/Comment";
 import Task from "../models/Task";
 import { AuthRequest } from "../middleware/auth";
 import { io } from "../app";
+import User from "../models/User";
 
 export const addComment = async (req:AuthRequest,res:Response):Promise<void> => {
     try{
@@ -27,9 +28,20 @@ export const addComment = async (req:AuthRequest,res:Response):Promise<void> => 
             return;
         }
 
+        const adminUser = await User.findById(userId);
+        if(!adminUser){
+            res.status(404).json({message:"Admin not found"});
+            return;
+        }
+
         const comment = new Comment ({ task:taskId,user:userId,text });
         await comment.save();
-        io.emit('commentAdded',comment);
+
+        const commentWithEmail = {
+            ...comment.toObject(),
+            adminEmail:adminUser.email,
+        }
+        io.emit('commentAdded',commentWithEmail);
         res.status(201).json(comment);
 
     }catch(error){
