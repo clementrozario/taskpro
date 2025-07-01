@@ -9,6 +9,7 @@ import adminRoutes from './routes/admin';
 import http from 'http'
 import { Server } from 'socket.io'
 import { initSocketIO } from './socket'
+import activityRoutes from './routes/activity';
 
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api/task',taskRoutes);
 app.use("/api/projects", projectRoutes);
 app.use('/api/comments',commentRoutes);
 app.use('/api/admin',adminRoutes);
+app.use('/api/activity',activityRoutes);
 
 const PORT = process.env.PORT;
 server.listen(PORT,()=>{
