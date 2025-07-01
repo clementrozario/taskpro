@@ -4,6 +4,7 @@ import Task from "../models/Task";
 import { AuthRequest } from "../middleware/auth";
 import { io } from "../app";
 import User from "../models/User";
+import { logActivity } from "../utils/logActivity";
 
 export const addComment = async (req:AuthRequest,res:Response):Promise<void> => {
     try{
@@ -30,6 +31,13 @@ export const addComment = async (req:AuthRequest,res:Response):Promise<void> => 
         
         const comment = new Comment ({ task:taskId,user:userId,text });
         await comment.save();
+
+        await logActivity({
+            project:task.project.toString(),
+            user:userId,
+            action:"added comment",
+            details:`comment: ${comment.text}`
+        });
 
         const populatedComment = await comment.populate("user", "email role");
         

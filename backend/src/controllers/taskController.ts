@@ -3,6 +3,7 @@ import Task from "../models/Task"
 import { AuthRequest } from "../middleware/auth";
 import { io } from "../app";
 import mongoose from "mongoose";
+import { logActivity } from "../utils/logActivity";
 
 //create:
 export const createTask =  async (req:AuthRequest,res:Response):Promise<void> => {
@@ -12,6 +13,14 @@ export const createTask =  async (req:AuthRequest,res:Response):Promise<void> =>
 
         const task = new Task({title,description,status,assignee,project,deadline,priority,tags,createdBy});
         await task.save();
+
+        //activity
+        await logActivity({
+            project:task.project.toString(),
+            user:createdBy,
+            action:"created task",
+            details:`Task:${task.title}`
+        })
 
         const populatedTask = await Task.findById(task._id)
             .populate("assignee", "email role")
@@ -43,6 +52,15 @@ export const updateTask = async (req:AuthRequest,res:Response):Promise<void> => 
             res.status(404).json({message:"Task not found"});
             return;
         }
+
+        //Activity:
+        await logActivity({
+            project:task.project.toString(),
+            user:req.user?.userId,
+            action:"updated the task",
+            details:`Task: ${task.title}`
+        })
+
         io.emit("task-assigned",task);
         res.json(task);
     }catch(error){
@@ -59,6 +77,14 @@ export const deleteTask = async(req:AuthRequest,res:Response):Promise<void> => {
         res.status(400).json({message:"Task not found"});
         return;
         }
+
+        await logActivity({
+            project:task.project.toString(),
+            user:req.user?.userId,
+            action:"deleted Task",
+            details:`Task: ${task.title}`
+        });
+
         io.emit('task-deleted',task);
         res.json({message:"Task deleted"}); 
     }catch(error){
