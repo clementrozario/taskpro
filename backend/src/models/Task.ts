@@ -1,6 +1,5 @@
 import mongoose,{Document,Schema} from "mongoose";
 
-
 export interface ITask extends Document{
     title:string;
     description?:string;
@@ -9,7 +8,7 @@ export interface ITask extends Document{
     project:mongoose.Types.ObjectId;
     deadline?:Date;
     priority?:"Low" | "Medium" | "High";
-    tags?:  mongoose.Types.ObjectId[];
+    tags?:  string[];
     createdBy:mongoose.Types.ObjectId;
 }
 
@@ -19,14 +18,14 @@ const TaskSchema = new Schema<ITask>(
         description:{type:String},
         status: {
             type:String,
-            enum:["To Do","In Progress","Done"],
+            enum:["To Do","In Progess","Done"],
             default:"To Do",
         },
         assignee:{type:Schema.Types.ObjectId,ref:"User"},
         project:{type:Schema.Types.ObjectId,ref:"Project",required:true},
         deadline:{type:Date},
         priority:{type:String,enum:["Low","Medium","High"],default:"Medium"},
-        tags:[{type:Schema.Types.ObjectId,ref:"User"}],
+        tags:[{type:String}],
         createdBy:{type:Schema.Types.ObjectId,ref:"User",required:true},
     },
     { timestamps:true }
