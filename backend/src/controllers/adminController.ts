@@ -3,6 +3,7 @@ import Project from "../models/Project";
 import Task from "../models/Task";
 import { AuthRequest } from "../middleware/auth";
 import { Response } from "express";
+import Comment from "../models/Comment";
 
 // displaying all users:
 
@@ -10,6 +11,7 @@ export const getAllUsers = async (req:AuthRequest,res:Response) => {
     try{
         if(req.user?.role != "Admin") {
             res.status(403).json({message:"Only admin are allowed to view"});
+            return;
         }
         const users = await User.find().select('-password');
         res.json(users);
@@ -23,6 +25,7 @@ export const deleteUser = async(req:AuthRequest,res:Response)=>{
     try{
         if(req.user?.role !== "Admin"){
             res.status(403).json({message:"only admin can delete users"});
+            return;
         }
         const { id } = req.params;
         const user = await User.findByIdAndDelete(id);
@@ -30,6 +33,8 @@ export const deleteUser = async(req:AuthRequest,res:Response)=>{
             res.status(404).json({message:"user not found"});
             return;
         }
+        await Task.deleteMany({createdBy:id});
+        await Comment.deleteMany({ user:id });
         res.json({message:"user deleted"})
     }catch(error){
         res.status(500).json({message:"Server Error"});

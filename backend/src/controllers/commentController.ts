@@ -3,20 +3,20 @@ import Comment from "../models/Comment";
 import Task from "../models/Task";
 import { AuthRequest } from "../middleware/auth";
 import { io } from "../app";
-import User from "../models/User";
 import { logActivity } from "../utils/logActivity";
+import { isAdmin, isTaskAssignee } from "../utils/permissions";
 
 export const addComment = async (req:AuthRequest,res:Response):Promise<void> => {
     try{
-        
-        if (req.user?.role !== "Admin") {
-            res.status(403).json({ message: "Only admin can comment on tasks" });
-            return;
-        }
-
         const { taskId } = req.params;
         const { text } = req.body;
         const userId = req.user?.userId;
+
+        const assignee = await isTaskAssignee(req,taskId);
+        if (!isAdmin(req) && !assignee) {
+            res.status(403).json({ message: "Only admin or assigned users can comment on tasks" });
+            return;
+        }
 
         if(!text ) {
             res.status(400).json({message:'comment text is needed'});
