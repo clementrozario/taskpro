@@ -4,12 +4,18 @@ import { AuthRequest } from "../middleware/auth";
 import { io } from "../app";
 import mongoose from "mongoose";
 import { logActivity } from "../utils/logActivity";
+import { isAdmin, isTaskCreator } from "../utils/permissions";
 
 //create:
 export const createTask =  async (req:AuthRequest,res:Response):Promise<void> => {
     try{
         const { title,description,status,assignee,project,deadline,priority,tags } = req.body;
         const createdBy = req.user?.userId;
+
+         if (assignee && !isAdmin(req)) {
+            res.status(403).json({ message: "Only admin can assign tasks" });
+            return;
+        }
 
         const task = new Task({title,description,status,assignee,project,deadline,priority,tags,createdBy});
         await task.save();
@@ -41,8 +47,13 @@ export const updateTask = async (req:AuthRequest,res:Response):Promise<void> => 
         const { id } = req.params;
         const updates = req.body;
 
-        if (updates.assignee && req.user?.role !== "Admin") 
-        {
+        const creator = await isTaskCreator(req,id);
+        if(!isAdmin(req) && !creator){
+            res.status(403).json({message:'Only admin or task creator can edit the tasks'});
+            return;
+        }
+
+        if(updates.assignee && !isAdmin(req)){
         res.status(403).json({ message: "Only admin can assign tasks" });
         return;
         }
@@ -61,7 +72,7 @@ export const updateTask = async (req:AuthRequest,res:Response):Promise<void> => 
             details:`Task: ${task.title}`
         })
 
-        io.emit("task-assigned",task);
+        io.emit("task-updated",task);
         res.json(task);
     }catch(error){
         res.status(500).json({message:"Server Error"});
@@ -71,13 +82,18 @@ export const updateTask = async (req:AuthRequest,res:Response):Promise<void> => 
 // delete:
 export const deleteTask = async(req:AuthRequest,res:Response):Promise<void> => {
     try{
+        if(!isAdmin(req)){
+            res.status(403).json({message:"only Admin can delete the tasks"});
+            return;
+        }
         const { id } = req.params;
         const task = await Task.findByIdAndDelete(id);
         if(!task) {
-        res.status(400).json({message:"Task not found"});
+        res.status(404).json({message:"Task not found"});
         return;
         }
 
+        //delete activity
         await logActivity({
             project:task.project.toString(),
             user:req.user?.userId,
