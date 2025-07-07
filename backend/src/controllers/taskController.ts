@@ -75,6 +75,7 @@ export const updateTask = async (req:AuthRequest,res:Response):Promise<void> => 
         io.emit("task-updated",task);
         res.json(task);
     }catch(error){
+        console.log(error);
         res.status(500).json({message:"Server Error"});
     }
 };
@@ -118,13 +119,29 @@ export const getAllTasks = async (req:AuthRequest,res:Response) => {
             return;
         }
 
+        const {  title, tag, assignee,priority } = req.query;
+
+        const match: any = {
+            project:new mongoose.Types.ObjectId(projectId),
+        }
+
+        if(title){
+            match.title = { $regex: title as string, $options:"i"};
+        }
+        if(tag){
+            match.tags = new mongoose.Types.ObjectId(tag as string);
+        }
+        if(assignee){
+            match.assignee = new mongoose.Types.ObjectId(assignee as string);
+        }
+        if(priority){
+            match.priority = priority;
+        }
+
         const tasks = await Task.aggregate([
-            {
-                $match: {
-                    project: new mongoose.Types.ObjectId(projectId),
-            },
-        },
-            {
+               { $match: match},
+                   
+                {
                 $lookup:{
                     from:"users",
                     localField:"assignee",
