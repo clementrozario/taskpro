@@ -138,7 +138,7 @@ export const getAllTasks = async (req:AuthRequest,res:Response) => {
             match.priority = priority;
         }
 
-        const tasks = await Task.aggregate([
+        const tasks = await Task.aggregate([    
                { $match: match},
                    
                 {
