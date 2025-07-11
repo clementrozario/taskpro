@@ -30,7 +30,10 @@ export const signup = async (req:Request,res:Response):Promise<void> => {
         const user = new User({email,password:hashedPassword,role});
         await user.save();
 
-        res.status(201).json({message:'User Created'});
+        const token = jwt.sign({userId:user._id,role:user.role},process.env.JWT_SECRET as string,{expiresIn:'1d'});
+
+        res.status(201).json({message:'User Created',userId:user._id,email:user.email,role:user.role,token});
+
     }catch(error:any){
         if(error.name==="ValidationError"){
             res.status(400).json({message:'Validation Failed',errors:error.errors});
@@ -58,7 +61,8 @@ export const login = async (req:Request,res:Response) => {
         }
 
         const token = jwt.sign({userId:user._id,role:user.role},process.env.JWT_SECRET as string,{expiresIn:'1d'});
-        res.json({token,role:user.role});
+
+        res.json({message:'welcome! Login Successful',userId:user._id,email:user.email,role:user.role,token});
     }catch(error:any){
         if(error.name === 'ValidationError'){
             res.status(400).json({message:'Validation Failed',errors:error.errors});
