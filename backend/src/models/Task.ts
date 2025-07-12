@@ -26,7 +26,7 @@ const TaskSchema = new Schema<ITask>(
         project:{type:Schema.Types.ObjectId,ref:"Project",required:true},
         deadline:{type:Date},
         priority:{type:String,enum:["Low","Medium","High"],default:"Medium"},
-        tags:[{type:Schema.Types.ObjectId,ref:"User"}],
+        tags:[{type:String}],
         createdBy:{type:Schema.Types.ObjectId,ref:"User",required:true},
     },
     { timestamps:true }
