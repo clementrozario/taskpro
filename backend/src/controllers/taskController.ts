@@ -5,12 +5,22 @@ import { io } from "../app";
 import mongoose from "mongoose";
 import { logActivity } from "../utils/logActivity";
 import { isAdmin, isTaskCreator } from "../utils/permissions";
+import User from "../models/User";
 
 //create:
 export const createTask =  async (req:AuthRequest,res:Response):Promise<void> => {
     try{
-        const { title,description,status,assignee,project,deadline,priority,tags } = req.body;
+        let { title,description,status,assignee,project,deadline,priority,tags } = req.body;
         const createdBy = req.user?.userId;
+
+        if(assignee && typeof assignee === "string" && !mongoose.Types.ObjectId.isValid(assignee)){
+            const user = await User.findOne({email:assignee})
+            if(!user){
+                res.status(400).json({message:"Assignee user is not Found"});
+                return;
+            }
+            assignee = user._id;
+        }
 
          if (assignee && !isAdmin(req)) {
             res.status(403).json({ message: "Only admin can assign tasks" });
