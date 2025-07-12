@@ -129,7 +129,22 @@ export const getAllTasks = async (req:AuthRequest,res:Response) => {
             return;
         }
 
-        const {  title, tag, assignee,priority } = req.query;
+        let {  title, tag, assignee,priority } = req.query;
+
+        let assigneeFilter: string | mongoose.Types.ObjectId | undefined = undefined;
+
+        if (assignee && typeof assignee === "string") {
+            if (mongoose.Types.ObjectId.isValid(assignee)) {
+                assigneeFilter = new mongoose.Types.ObjectId(assignee);
+            } else {
+            const user = await User.findOne({ email: assignee });
+            if (!user) {
+                res.status(400).json({ message: "Assignee user is not Found" });
+                return;
+            }
+            assigneeFilter = user._id as mongoose.Types.ObjectId;
+        }
+    }
 
         const match: any = {
             project:new mongoose.Types.ObjectId(projectId),
@@ -138,10 +153,10 @@ export const getAllTasks = async (req:AuthRequest,res:Response) => {
         if(title){
             match.title = { $regex: title as string, $options:"i"};
         }
-        if(tag){
-            match.tags = new mongoose.Types.ObjectId(tag as string);
+        if(tag && typeof tag === "string"){
+            match.tags = tag;
         }
-        if(assignee){
+        if(assigneeFilter){
             match.assignee = new mongoose.Types.ObjectId(assignee as string);
         }
         if(priority){
@@ -150,7 +165,7 @@ export const getAllTasks = async (req:AuthRequest,res:Response) => {
 
         const tasks = await Task.aggregate([    
                { $match: match},
-                   
+
                 {
                 $lookup:{
                     from:"users",

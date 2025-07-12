@@ -9,7 +9,7 @@ export interface ITask extends Document{
     project:mongoose.Types.ObjectId;
     deadline?:Date;
     priority?:"Low" | "Medium" | "High";
-    tags?:  mongoose.Types.ObjectId[];
+    tags?:  string[];
     createdBy:mongoose.Types.ObjectId;
 }
 
