@@ -157,7 +157,7 @@ export const getAllTasks = async (req:AuthRequest,res:Response) => {
             match.tags = tag;
         }
         if(assigneeFilter){
-            match.assignee = new mongoose.Types.ObjectId(assignee as string);
+            match.assignee = assigneeFilter;
         }
         if(priority){
             match.priority = priority;
