@@ -10,6 +10,6 @@ export const isTaskCreator = async (req:AuthRequest,taskId:string) => {
 
 export const isTaskAssignee = async (req:AuthRequest,taskId:string)=>{
     const task = await Task.findById(taskId);
-    return task && task.createdBy.toString() === req.user?.userId; 
+    return task && task.assignee?.toString() === req.user?.userId; 
 }
 
